@@ -17,10 +17,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# Минимальный набор зависимостей (без matplotlib, pandas, plotly, scikit-image)
-COPY requirements.docker.txt requirements.docker.txt
+# Единый список зависимостей
+COPY requirements.txt requirements.txt
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.docker.txt
+    pip install --no-cache-dir -r requirements.txt
 
 # Директории приложения
 RUN mkdir -p uploads results artifacts templates

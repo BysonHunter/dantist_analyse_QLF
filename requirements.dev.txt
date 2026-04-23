@@ -1,0 +1,10 @@
+-r requirements.txt
+
+# Research and notebook/Streamlit tooling
+streamlit
+matplotlib
+pillow
+pandas
+scikit-image
+plotly
+requests==2.31.0

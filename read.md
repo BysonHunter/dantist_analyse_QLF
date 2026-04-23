@@ -45,6 +45,12 @@ pip install -r requirements.txt
 python app.py
 ```
 
+Для исследовательских скриптов/ноутбуков:
+
+```bash
+pip install -r requirements.dev.txt
+```
+
 По умолчанию приложение стартует на `http://localhost:5000`.
 
 ## Docker

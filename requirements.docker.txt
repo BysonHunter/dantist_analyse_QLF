@@ -1,7 +1,3 @@
-# Минимальные зависимости только для app.py (Flask + OpenCV + numpy)
-# Остальные пакеты (matplotlib, pandas, plotly, scikit-image) не используются в веб-приложении
-Flask==2.3.3
-Flask-CORS==4.0.0
-opencv-python-headless==4.8.1.78
-numpy==1.24.3
-Werkzeug==2.3.7
+# Kept for backward compatibility with Dockerfile history.
+# Single source of truth is requirements.txt.
+-r requirements.txt

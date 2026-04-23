@@ -23,6 +23,12 @@
 pip install -r requirements.txt
 ```
 
+Для исследовательских скриптов/ноутбуков:
+
+```bash
+pip install -r requirements.dev.txt
+```
+
 ### Запуск приложения локально
 
 ```bash

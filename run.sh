@@ -27,9 +27,8 @@ if [ ! -f "requirements.txt" ]; then
     cat > requirements.txt << EOF
 Flask==2.3.3
 Flask-CORS==4.0.0
-opencv-python==4.8.1.78
+opencv-python-headless==4.8.1.78
 numpy==1.24.3
-requests==2.31.0
 Werkzeug==2.3.7
 EOF
 fi
