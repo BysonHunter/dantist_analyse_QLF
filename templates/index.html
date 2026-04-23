@@ -1,0 +1,1682 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QLF Анализатор зубной эмали</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2E86AB 0%, #1B6CA8 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #A23B72;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            padding: 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .section-title {
+            color: #2E86AB;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #2E86AB;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .analysis-channel-title {
+            color: #1B6CA8;
+            font-size: 1.25rem;
+            margin: 24px 0 12px 0;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #2E86AB;
+            font-weight: 600;
+        }
+        
+        .channel-toggle {
+            cursor: pointer;
+            color: #1B6CA8;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 24px 0 0 0;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #2E86AB;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            user-select: none;
+        }
+        
+        .channel-toggle:hover {
+            color: #2E86AB;
+        }
+        
+        .channel-toggle i {
+            transition: transform 0.2s;
+        }
+        
+        .channel-toggle.open i {
+            transform: rotate(90deg);
+        }
+        
+        .channel-content {
+            margin-top: 12px;
+            margin-bottom: 8px;
+            display: none;
+        }
+        
+        .channel-content.open {
+            display: block;
+        }
+        
+        .analysis-channel-block {
+            margin-bottom: 28px;
+        }
+        
+        .analysis-images-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 16px;
+        }
+        
+        .analysis-tables-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .analysis-images-row,
+            .analysis-tables-row {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .result-image-caption {
+            background: #2E86AB;
+            color: white;
+            padding: 8px 12px;
+            text-align: center;
+            font-size: 0.95rem;
+        }
+        
+        .upload-area {
+            border: 2px dashed #2E86AB;
+            border-radius: 8px;
+            padding: 20px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: rgba(46, 134, 171, 0.04);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .upload-area:hover {
+            background: rgba(46, 134, 171, 0.1);
+            border-color: #1B6CA8;
+        }
+        
+        .upload-area i {
+            font-size: 28px;
+            color: #2E86AB;
+        }
+        
+        .upload-area .upload-text {
+            color: #333;
+            font-size: 0.95rem;
+        }
+        
+        .upload-area .upload-text span {
+            color: #2E86AB;
+            font-weight: 600;
+        }
+        
+        .upload-area .upload-hint {
+            color: #6c757d;
+            font-size: 0.8rem;
+            width: 100%;
+            margin-top: 2px;
+        }
+        
+        .upload-area .btn-choose {
+            padding: 8px 18px;
+            font-size: 0.9rem;
+            border-radius: 6px;
+            color: #fff;
+        }
+        
+        .upload-area .btn-choose i {
+            color: #fff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #2E86AB 0%, #1B6CA8 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(46, 134, 171, 0.3);
+        }
+        
+        .btn:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+        }
+        
+        .image-container {
+            position: relative;
+            margin-bottom: 20px;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            overflow: hidden;
+            background: #000;
+        }
+        
+        .image-container img {
+            max-width: 100%;
+            display: block;
+            cursor: crosshair;
+        }
+        
+        .roi-overlay {
+            position: absolute;
+            border: 2px solid #00ff00;
+            background: rgba(0, 255, 0, 0.1);
+            pointer-events: none;
+        }
+        
+        .roi-info {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            white-space: nowrap;
+            transform: translate(-50%, -100%);
+            margin-bottom: 2px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .control-group {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            margin-bottom: 20px;
+        }
+        
+        .control-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .control-label {
+            font-weight: bold;
+            color: #333;
+            min-width: 100px;
+        }
+        
+        .control-input {
+            width: 80px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        .control-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .control-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 1px solid #2E86AB;
+            background: white;
+            color: #2E86AB;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .control-btn:hover {
+            background: #f0f8ff;
+        }
+        
+        .results-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .results-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .result-image {
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+        
+        .result-image:hover {
+            box-shadow: 0 2px 12px rgba(46, 134, 171, 0.25);
+        }
+        
+        .result-image img {
+            width: 100%;
+            display: block;
+            pointer-events: none;
+        }
+        
+        .image-lightbox-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 3000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        .image-lightbox-overlay.active {
+            display: flex;
+        }
+        
+        .image-lightbox-content {
+            position: relative;
+            max-width: 95vw;
+            max-height: 95vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .image-lightbox-content img {
+            max-width: 100%;
+            max-height: 95vh;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+        
+        .image-lightbox-close {
+            position: absolute;
+            top: -44px;
+            right: 0;
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: #fff;
+            color: #333;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .image-lightbox-close:hover {
+            background: #f0f0f0;
+            color: #1B6CA8;
+        }
+        
+        .result-image-title {
+            background: #2E86AB;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            border-radius: 8px;
+            box-shadow: 0 1px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e0e6eb;
+        }
+        
+        .analysis-tables-row table {
+            width: 100%;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            font-size: 0.9rem;
+        }
+        
+        th {
+            background: #2E86AB;
+            color: white;
+            padding: 10px 14px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 10px 14px;
+            border-bottom: 1px solid #e8ecef;
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .metric-value {
+            font-variant-numeric: tabular-nums;
+            font-weight: 600;
+            color: #1B6CA8;
+        }
+        
+        .color-legend {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px 16px;
+            margin-top: 24px;
+            padding: 10px 14px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e0e6eb;
+            font-size: 0.85rem;
+        }
+        
+        .color-legend h3 {
+            width: 100%;
+            margin: 0 0 6px 0;
+            font-size: 0.9rem;
+            color: #495057;
+        }
+        
+        .color-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .color-box {
+            width: 18px;
+            height: 18px;
+            border-radius: 3px;
+            border: 1px solid rgba(0,0,0,0.15);
+            flex-shrink: 0;
+        }
+        
+        .loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: white;
+        }
+        
+        .loading.active {
+            display: flex;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .instructions {
+            background: #f8f9fa;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border-left: 4px solid #2E86AB;
+            margin-bottom: 16px;
+        }
+        
+        .instructions-toggle {
+            cursor: pointer;
+            color: #2E86AB;
+            font-size: 0.95rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            user-select: none;
+        }
+        
+        .instructions-toggle:hover {
+            color: #1B6CA8;
+        }
+        
+        .instructions-toggle i {
+            transition: transform 0.2s;
+        }
+        
+        .instructions-toggle.open i {
+            transform: rotate(90deg);
+        }
+        
+        .instructions-content {
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .instructions-content.open {
+            display: block;
+        }
+        
+        .instructions ol {
+            margin: 0 0 8px 18px;
+            padding: 0;
+        }
+        
+        .instructions li {
+            margin-bottom: 6px;
+            line-height: 1.4;
+            font-size: 0.9rem;
+        }
+        
+        .instructions p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: #495057;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        .status-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .btn-block {
+            width: 100%;
+            justify-content: center;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-tooth"></i> QLF Анализатор зубной эмали</h1>
+            <p>Клиент-серверное приложение для анализа деминерализации зубной эмали</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-upload"></i> Загрузка изображения
+                </div>
+                
+                <div class="instructions">
+                    <div class="instructions-toggle" id="instructionsToggle" onclick="document.getElementById('instructionsContent').classList.toggle('open'); document.getElementById('instructionsToggle').classList.toggle('open');">
+                        <i class="fas fa-chevron-right"></i>
+                        <span>Инструкция</span>
+                    </div>
+                    <div class="instructions-content" id="instructionsContent">
+                        <ol>
+                            <li>Загрузите QLF изображение зубов (JPG, PNG, BMP)</li>
+                            <li>Выберите область анализа (ROI) на изображении мышью</li>
+                            <li>Нажмите «Запустить анализ»</li>
+                            <li>Просмотрите результаты и при необходимости сохраните их</li>
+                        </ol>
+                        <p><strong>Алгоритм ROI:</strong> сегментация зубов в области, затем анализ только в отсегментированных зонах.</p>
+                    </div>
+                </div>
+                
+                <div class="alert" id="alert"></div>
+                
+                <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                    <i class="fas fa-cloud-upload-alt" id="uploadIcon"></i>
+                    <div class="upload-text-block">
+                        <div class="upload-text" id="uploadText"><span>Выберите файл</span> или перетащите сюда</div>
+                        <div class="upload-hint" id="uploadHint">JPG, PNG, BMP, TIFF</div>
+                    </div>
+                    <button type="button" class="btn btn-choose" onclick="event.stopPropagation(); document.getElementById('fileInput').click();">
+                        <i class="fas fa-folder-open"></i> <span id="uploadBtnLabel">Выбрать файл</span>
+                    </button>
+                    <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(event)">
+                </div>
+                
+                <div id="imageSection" style="display: none;">
+                    <div class="section-title">
+                        <i class="fas fa-image"></i> Выбор области анализа (ROI)
+                    </div>
+                    
+                    <div class="image-container" id="imageContainer">
+                        <img id="displayImage" src="" alt="Загруженное изображение">
+                        <div class="roi-overlay" id="roiOverlay" style="display: none;"></div>
+                        <div class="roi-info" id="roiInfo" style="display: none;"></div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <div class="control-row">
+                            <div class="control-label">X:</div>
+                            <div class="control-buttons">
+                                <button class="control-btn" onclick="adjustRoi('x', -10)">-</button>
+                                <input type="number" id="roiX" class="control-input" value="0" min="0" onchange="updateRoiFromInputs()">
+                                <button class="control-btn" onclick="adjustRoi('x', 10)">+</button>
+                            </div>
+                        </div>
+                        
+                        <div class="control-row">
+                            <div class="control-label">Y:</div>
+                            <div class="control-buttons">
+                                <button class="control-btn" onclick="adjustRoi('y', -10)">-</button>
+                                <input type="number" id="roiY" class="control-input" value="0" min="0" onchange="updateRoiFromInputs()">
+                                <button class="control-btn" onclick="adjustRoi('y', 10)">+</button>
+                            </div>
+                        </div>
+                        
+                        <div class="control-row">
+                            <div class="control-label">Ширина:</div>
+                            <div class="control-buttons">
+                                <button class="control-btn" onclick="adjustRoi('width', -10)">-</button>
+                                <input type="number" id="roiWidth" class="control-input" value="200" min="10" onchange="updateRoiFromInputs()">
+                                <button class="control-btn" onclick="adjustRoi('width', 10)">+</button>
+                            </div>
+                        </div>
+                        
+                        <div class="control-row">
+                            <div class="control-label">Высота:</div>
+                            <div class="control-buttons">
+                                <button class="control-btn" onclick="adjustRoi('height', -10)">-</button>
+                                <input type="number" id="roiHeight" class="control-input" value="200" min="10" onchange="updateRoiFromInputs()">
+                                <button class="control-btn" onclick="adjustRoi('height', 10)">+</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="controls">
+                        <button class="btn" onclick="centerRoi()">
+                            <i class="fas fa-crosshairs"></i> Центрировать ROI
+                        </button>
+                        <button class="btn btn-success" onclick="runAnalysis()" id="analyzeBtn">
+                            <i class="fas fa-play"></i> Запустить анализ
+                        </button>
+                        <button class="btn btn-secondary" onclick="resetApp()">
+                            <i class="fas fa-redo"></i> Сбросить
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-chart-bar"></i> Результаты анализа
+                </div>
+                
+                <div id="resultsSection" style="display: none;">
+                    <div class="analysis-channel-block">
+                        <div class="channel-toggle open" id="channelToggleRed" onclick="document.getElementById('channelContentRed').classList.toggle('open'); document.getElementById('channelToggleRed').classList.toggle('open');">
+                            <i class="fas fa-chevron-right"></i>
+                            <span>Red CH</span>
+                        </div>
+                        <div class="channel-content open" id="channelContentRed">
+                            <div class="analysis-images-row">
+                                <div class="result-image">
+                                    <div class="result-image-caption">ROI</div>
+                                    <img id="roiResultImage" src="" alt="ROI анализ">
+                                </div>
+                                <div class="result-image">
+                                    <div class="result-image-caption">All teeth</div>
+                                    <img id="allTeethResultImage" src="" alt="Анализ всех зубов">
+                                </div>
+                            </div>
+                            <div class="analysis-tables-row">
+                                <div class="table-container">
+                                    <table id="roiTable">
+                                        <thead>
+                                            <tr>
+                                                <th>Метрика (ROI)</th>
+                                                <th>Значение</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                                <div class="table-container">
+                                    <table id="allTeethTable">
+                                        <thead>
+                                            <tr>
+                                                <th>Метрика (все зубы)</th>
+                                                <th>Значение</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="analysis-channel-block">
+                        <div class="channel-toggle open" id="channelToggleGreen" onclick="document.getElementById('channelContentGreen').classList.toggle('open'); document.getElementById('channelToggleGreen').classList.toggle('open');">
+                            <i class="fas fa-chevron-right"></i>
+                            <span>Green CH</span>
+                        </div>
+                        <div class="channel-content open" id="channelContentGreen">
+                            <div class="analysis-images-row">
+                                <div class="result-image">
+                                    <div class="result-image-caption">ROI</div>
+                                    <img id="roiResultImageGreen" src="" alt="ROI анализ зелёный">
+                                </div>
+                                <div class="result-image">
+                                    <div class="result-image-caption">All teeth</div>
+                                    <img id="allTeethResultImageGreen" src="" alt="Анализ всех зубов зелёный">
+                                </div>
+                            </div>
+                            <div class="analysis-tables-row">
+                                <div class="table-container">
+                                    <table id="roiTableGreen">
+                                        <thead>
+                                            <tr>
+                                                <th>Метрика (ROI)</th>
+                                                <th>Значение</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                                <div class="table-container">
+                                    <table id="allTeethTableGreen">
+                                        <thead>
+                                            <tr>
+                                                <th>Метрика (все зубы)</th>
+                                                <th>Значение</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="analysis-channel-block">
+                        <div class="channel-toggle open" id="channelToggleQlfDf" onclick="document.getElementById('channelContentQlfDf').classList.toggle('open'); document.getElementById('channelToggleQlfDf').classList.toggle('open');">
+                            <i class="fas fa-chevron-right"></i>
+                            <span>QLF DF</span>
+                        </div>
+                        <div class="channel-content open" id="channelContentQlfDf">
+                            <div class="analysis-images-row">
+                                <div class="result-image">
+                                    <div class="result-image-caption">ROI</div>
+                                    <img id="roiResultImageQlfDf" src="" alt="ROI анализ QLF DF">
+                                </div>
+                                <div class="result-image">
+                                    <div class="result-image-caption">All teeth</div>
+                                    <img id="allTeethResultImageQlfDf" src="" alt="Анализ всех зубов QLF DF">
+                                </div>
+                            </div>
+                            <div class="analysis-tables-row">
+                                <div class="table-container">
+                                    <table id="roiTableQlfDf">
+                                        <thead>
+                                            <tr>
+                                                <th>Метрика (ROI)</th>
+                                                <th>Значение</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                                <div class="table-container">
+                                    <table id="allTeethTableQlfDf">
+                                        <thead>
+                                            <tr>
+                                                <th>Метрика (все зубы)</th>
+                                                <th>Значение</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="color-legend" id="colorLegend"></div>
+                    
+                    <div class="controls" style="margin-top: 30px;">
+                        <button class="btn btn-success" onclick="saveResults()" id="saveBtn">
+                            <i class="fas fa-download"></i> Сохранить результаты
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="emptyResults" style="text-align: center; padding: 50px 20px; color: #666;">
+                    <i class="fas fa-chart-line" style="font-size: 48px; margin-bottom: 20px; color: #ccc;"></i>
+                    <h3>Результаты анализа</h3>
+                    <p>Загрузите изображение и запустите анализ для отображения результатов</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <h2 id="loadingTitle">Выполняется анализ...</h2>
+        <p id="loadingSubtitle">Пожалуйста, подождите</p>
+    </div>
+    
+    <div class="image-lightbox-overlay" id="imageLightbox" onclick="if (event.target === this) closeImageLightbox();">
+        <div class="image-lightbox-content">
+            <button type="button" class="image-lightbox-close" onclick="closeImageLightbox()" title="Закрыть" aria-label="Закрыть">
+                <i class="fas fa-times"></i>
+            </button>
+            <img id="lightboxImg" src="" alt="Увеличенное изображение">
+        </div>
+    </div>
+    
+    <script>
+        // Глобальные переменные
+        let currentImage = null;
+        let imageInfo = {
+            filename: null,
+            width: 0,
+            height: 0
+        };
+        
+        let roi = {
+            x: 0,
+            y: 0,
+            width: 200,
+            height: 200,
+            dragging: false,
+            resizing: false,
+            startX: 0,
+            startY: 0
+        };
+        
+        let analysisResults = null;
+        let isSaving = false; // Флаг для блокировки повторного сохранения
+        
+        // Обработка выбора файла
+        async function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // Проверка типа файла
+            if (!file.type.match('image.*')) {
+                showAlert('Пожалуйста, выберите файл изображения', 'error');
+                return;
+            }
+            
+            showLoading(true);
+            
+            // Создаем FormData для отправки файла
+            const formData = new FormData();
+            formData.append('image', file);
+            
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    imageInfo = {
+                        filename: data.filename,
+                        width: data.width,
+                        height: data.height
+                    };
+                    
+                    // Отображаем изображение
+                    document.getElementById('displayImage').src = data.url;
+                    document.getElementById('imageSection').style.display = 'block';
+                    document.getElementById('emptyResults').style.display = 'none';
+                    // Обновляем вид блока загрузки: показываем имя файла
+                    const ut = document.getElementById('uploadText');
+                    ut.innerHTML = 'Загружен: <span></span>';
+                    ut.querySelector('span').textContent = data.filename;
+                    document.getElementById('uploadHint').textContent = 'Нажмите или перетащите другой файл для замены';
+                    document.getElementById('uploadBtnLabel').textContent = 'Сменить файл';
+                    
+                    // Центрируем ROI
+                    centerRoi();
+                    
+                    showAlert('Изображение успешно загружено', 'success');
+                } else {
+                    showAlert(data.error || 'Ошибка при загрузке изображения', 'error');
+                }
+            } catch (error) {
+                showAlert('Ошибка сети: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        // Центрирование ROI
+        function centerRoi() {
+            if (!imageInfo.width || !imageInfo.height) return;
+            
+            const imgWidth = imageInfo.width;
+            const imgHeight = imageInfo.height;
+            
+            roi.width = Math.min(300, imgWidth / 2);
+            roi.height = Math.min(300, imgHeight / 2);
+            roi.x = Math.max(0, (imgWidth - roi.width) / 2);
+            roi.y = Math.max(0, (imgHeight - roi.height) / 2);
+            
+            updateRoiDisplay();
+        }
+        
+        // Обновление отображения ROI
+        function updateRoiDisplay() {
+            const overlay = document.getElementById('roiOverlay');
+            const info = document.getElementById('roiInfo');
+            const img = document.getElementById('displayImage');
+            
+            if (!img.complete || !img.naturalWidth) return;
+            
+            // Получаем размеры отображенного изображения
+            const imgRect = img.getBoundingClientRect();
+            const scaleX = imgRect.width / imageInfo.width;
+            const scaleY = imgRect.height / imageInfo.height;
+            
+            // Обновляем поля ввода
+            document.getElementById('roiX').value = Math.round(roi.x);
+            document.getElementById('roiY').value = Math.round(roi.y);
+            document.getElementById('roiWidth').value = Math.round(roi.width);
+            document.getElementById('roiHeight').value = Math.round(roi.height);
+            
+            // Позиционируем overlay
+            overlay.style.display = 'block';
+            overlay.style.left = (roi.x * scaleX) + 'px';
+            overlay.style.top = (roi.y * scaleY) + 'px';
+            overlay.style.width = (roi.width * scaleX) + 'px';
+            overlay.style.height = (roi.height * scaleY) + 'px';
+            
+            // Надпись ROI — по центру над верхней границей области
+            info.style.display = 'block';
+            info.style.left = (roi.x * scaleX + (roi.width * scaleX) / 2) + 'px';
+            info.style.top = (roi.y * scaleY - 2) + 'px';
+            info.style.transform = 'translate(-50%, -100%)';
+            info.textContent = `ROI: ${Math.round(roi.width)}×${Math.round(roi.height)}`;
+        }
+        
+        // Обновление ROI из полей ввода
+        function updateRoiFromInputs() {
+            roi.x = parseInt(document.getElementById('roiX').value) || 0;
+            roi.y = parseInt(document.getElementById('roiY').value) || 0;
+            roi.width = parseInt(document.getElementById('roiWidth').value) || 200;
+            roi.height = parseInt(document.getElementById('roiHeight').value) || 200;
+            
+            // Проверяем границы
+            roi.x = Math.max(0, Math.min(roi.x, imageInfo.width - roi.width));
+            roi.y = Math.max(0, Math.min(roi.y, imageInfo.height - roi.height));
+            roi.width = Math.max(10, Math.min(roi.width, imageInfo.width - roi.x));
+            roi.height = Math.max(10, Math.min(roi.height, imageInfo.height - roi.y));
+            
+            updateRoiDisplay();
+        }
+        
+        // Регулировка ROI
+        function adjustRoi(property, delta) {
+            if (property === 'x') roi.x = Math.max(0, Math.min(roi.x + delta, imageInfo.width - roi.width));
+            if (property === 'y') roi.y = Math.max(0, Math.min(roi.y + delta, imageInfo.height - roi.height));
+            if (property === 'width') roi.width = Math.max(10, Math.min(roi.width + delta, imageInfo.width - roi.x));
+            if (property === 'height') roi.height = Math.max(10, Math.min(roi.height + delta, imageInfo.height - roi.y));
+            
+            updateRoiDisplay();
+        }
+        
+        // Запуск анализа
+        async function runAnalysis() {
+            if (!imageInfo.filename) {
+                showAlert('Сначала загрузите изображение', 'error');
+                return;
+            }
+            
+            showLoading(true);
+            document.getElementById('analyzeBtn').disabled = true;
+            
+            const roiCoords = [
+                Math.round(roi.x),
+                Math.round(roi.y),
+                Math.round(roi.width),
+                Math.round(roi.height)
+            ];
+            
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        filename: imageInfo.filename,
+                        roi_coords: roiCoords
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    analysisResults = data;
+                    displayResults(data);
+                    showAlert('Анализ успешно выполнен', 'success');
+                } else {
+                    showAlert(data.error || 'Ошибка при выполнении анализа', 'error');
+                }
+            } catch (error) {
+                showAlert('Ошибка сети: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+                document.getElementById('analyzeBtn').disabled = false;
+            }
+        }
+        
+        // Отображение результатов
+        function displayResults(data) {
+            // Показываем секцию результатов
+            document.getElementById('resultsSection').style.display = 'block';
+            document.getElementById('emptyResults').style.display = 'none';
+            
+            // Отображаем изображения
+            document.getElementById('roiResultImage').src = data.roi_analysis.image;
+            document.getElementById('allTeethResultImage').src = data.all_teeth_analysis.image;
+            
+            // Заполняем таблицу ROI
+            const roiTable = document.getElementById('roiTable').getElementsByTagName('tbody')[0];
+            roiTable.innerHTML = '';
+            
+            const roiStats = data.roi_analysis.stats;
+            addTableRow(roiTable, 'Q0 (Все поражения)', (roiStats.q0 * 100).toFixed(1) + '%');
+            addTableRow(roiTable, 'Q1 (45 < Δ ≤ 60)', (roiStats.q1 * 100).toFixed(1) + '%');
+            addTableRow(roiTable, 'Q2 (60 < Δ ≤ 75)', (roiStats.q2 * 100).toFixed(1) + '%');
+            addTableRow(roiTable, 'Q3 (75 < Δ ≤ 90)', (roiStats.q3 * 100).toFixed(1) + '%');
+            addTableRow(roiTable, 'Q4 (Δ > 90)', (roiStats.q4 * 100).toFixed(1) + '%');
+            addTableRow(roiTable, 'mean_deltaR', roiStats.mean_deltaR.toFixed(2));
+            addTableRow(roiTable, 'mean_deltaF', roiStats.mean_deltaF.toFixed(2));
+            addTableRow(roiTable, 'Изменение соотношения красной и зеленой флуоресценции', 
+                       roiStats.changing_the_ratio_of_red_and_green_fluorescence.toFixed(2));
+            addTableRow(roiTable, 'Максимальное изменение соотношения', 
+                       roiStats.max_changing_the_ratio_of_red_and_green_fluorescence.toFixed(2));
+            addTableRow(roiTable, 'Средняя потеря флуоресценции', 
+                       roiStats.average_fluorescence_loss.toFixed(2));
+            addTableRow(roiTable, 'Максимальная потеря флуоресценции', 
+                       roiStats.maximum_fluorescence_loss.toFixed(2));
+            
+            // Заполняем таблицу всех зубов
+            const allTeethTable = document.getElementById('allTeethTable').getElementsByTagName('tbody')[0];
+            allTeethTable.innerHTML = '';
+            
+            const allStats = data.all_teeth_analysis.stats;
+            addTableRow(allTeethTable, 'Q0 (Все поражения)', (allStats.q0 * 100).toFixed(1) + '%');
+            addTableRow(allTeethTable, 'Q1 (45 < Δ ≤ 60)', (allStats.q1 * 100).toFixed(1) + '%');
+            addTableRow(allTeethTable, 'Q2 (60 < Δ ≤ 75)', (allStats.q2 * 100).toFixed(1) + '%');
+            addTableRow(allTeethTable, 'Q3 (75 < Δ ≤ 90)', (allStats.q3 * 100).toFixed(1) + '%');
+            addTableRow(allTeethTable, 'Q4 (Δ > 90)', (allStats.q4 * 100).toFixed(1) + '%');
+            addTableRow(allTeethTable, 'mean_deltaR', allStats.mean_deltaR.toFixed(2));
+            addTableRow(allTeethTable, 'mean_deltaF', allStats.mean_deltaF.toFixed(2));
+            addTableRow(allTeethTable, 'Изменение соотношения красной и зеленой флуоресценции', 
+                       allStats.changing_the_ratio_of_red_and_green_fluorescence.toFixed(2));
+            addTableRow(allTeethTable, 'Максимальное изменение соотношения', 
+                       allStats.max_changing_the_ratio_of_red_and_green_fluorescence.toFixed(2));
+            addTableRow(allTeethTable, 'Средняя потеря флуоресценции', 
+                       allStats.average_fluorescence_loss.toFixed(2));
+            addTableRow(allTeethTable, 'Максимальная потеря флуоресценции', 
+                       allStats.maximum_fluorescence_loss.toFixed(2));
+            
+            // Зелёный канал: изображения
+            if (data.roi_analysis_green && data.all_teeth_analysis_green) {
+                document.getElementById('roiResultImageGreen').src = data.roi_analysis_green.image;
+                document.getElementById('allTeethResultImageGreen').src = data.all_teeth_analysis_green.image;
+                const roiStatsGreen = data.roi_analysis_green.stats;
+                const allStatsGreen = data.all_teeth_analysis_green.stats;
+                const roiTableGreen = document.getElementById('roiTableGreen').getElementsByTagName('tbody')[0];
+                roiTableGreen.innerHTML = '';
+                addTableRow(roiTableGreen, 'Q0 (Все поражения)', (roiStatsGreen.q0 * 100).toFixed(1) + '%');
+                addTableRow(roiTableGreen, 'Q1 (45 < Δ ≤ 60)', (roiStatsGreen.q1 * 100).toFixed(1) + '%');
+                addTableRow(roiTableGreen, 'Q2 (60 < Δ ≤ 75)', (roiStatsGreen.q2 * 100).toFixed(1) + '%');
+                addTableRow(roiTableGreen, 'Q3 (75 < Δ ≤ 90)', (roiStatsGreen.q3 * 100).toFixed(1) + '%');
+                addTableRow(roiTableGreen, 'Q4 (Δ > 90)', (roiStatsGreen.q4 * 100).toFixed(1) + '%');
+                addTableRow(roiTableGreen, 'mean_deltaG', roiStatsGreen.mean_deltaG.toFixed(2));
+                addTableRow(roiTableGreen, 'mean_deltaF', roiStatsGreen.mean_deltaF.toFixed(2));
+                addTableRow(roiTableGreen, 'Изменение соотношения зелёной флуоресценции', roiStatsGreen.changing_the_ratio_of_green_fluorescence.toFixed(2));
+                addTableRow(roiTableGreen, 'Максимальное изменение соотношения', roiStatsGreen.max_changing_the_ratio_of_green_fluorescence.toFixed(2));
+                addTableRow(roiTableGreen, 'Средняя потеря флуоресценции', roiStatsGreen.average_fluorescence_loss.toFixed(2));
+                addTableRow(roiTableGreen, 'Максимальная потеря флуоресценции', roiStatsGreen.maximum_fluorescence_loss.toFixed(2));
+                const allTeethTableGreen = document.getElementById('allTeethTableGreen').getElementsByTagName('tbody')[0];
+                allTeethTableGreen.innerHTML = '';
+                addTableRow(allTeethTableGreen, 'Q0 (Все поражения)', (allStatsGreen.q0 * 100).toFixed(1) + '%');
+                addTableRow(allTeethTableGreen, 'Q1 (45 < Δ ≤ 60)', (allStatsGreen.q1 * 100).toFixed(1) + '%');
+                addTableRow(allTeethTableGreen, 'Q2 (60 < Δ ≤ 75)', (allStatsGreen.q2 * 100).toFixed(1) + '%');
+                addTableRow(allTeethTableGreen, 'Q3 (75 < Δ ≤ 90)', (allStatsGreen.q3 * 100).toFixed(1) + '%');
+                addTableRow(allTeethTableGreen, 'Q4 (Δ > 90)', (allStatsGreen.q4 * 100).toFixed(1) + '%');
+                addTableRow(allTeethTableGreen, 'mean_deltaG', allStatsGreen.mean_deltaG.toFixed(2));
+                addTableRow(allTeethTableGreen, 'mean_deltaF', allStatsGreen.mean_deltaF.toFixed(2));
+                addTableRow(allTeethTableGreen, 'Изменение соотношения зелёной флуоресценции', allStatsGreen.changing_the_ratio_of_green_fluorescence.toFixed(2));
+                addTableRow(allTeethTableGreen, 'Максимальное изменение соотношения', allStatsGreen.max_changing_the_ratio_of_green_fluorescence.toFixed(2));
+                addTableRow(allTeethTableGreen, 'Средняя потеря флуоресценции', allStatsGreen.average_fluorescence_loss.toFixed(2));
+                addTableRow(allTeethTableGreen, 'Максимальная потеря флуоресценции', allStatsGreen.maximum_fluorescence_loss.toFixed(2));
+            }
+
+            if (data.roi_analysis_qlf_df && data.all_teeth_analysis_qlf_df) {
+                document.getElementById('roiResultImageQlfDf').src = data.roi_analysis_qlf_df.image;
+                document.getElementById('allTeethResultImageQlfDf').src = data.all_teeth_analysis_qlf_df.image;
+                const roiQlfStats = data.roi_analysis_qlf_df.stats;
+                const allQlfStats = data.all_teeth_analysis_qlf_df.stats;
+                const roiTableQlfDf = document.getElementById('roiTableQlfDf').getElementsByTagName('tbody')[0];
+                const allTableQlfDf = document.getElementById('allTeethTableQlfDf').getElementsByTagName('tbody')[0];
+                roiTableQlfDf.innerHTML = '';
+                allTableQlfDf.innerHTML = '';
+
+                addTableRow(roiTableQlfDf, 'Total lesions', roiQlfStats.total_lesions);
+                addTableRow(roiTableQlfDf, 'Mean DF (%)', roiQlfStats.mean_df_percent.toFixed(2));
+                addTableRow(roiTableQlfDf, 'Total lesion area (px)', roiQlfStats.total_lesion_area_px);
+                addTableRow(roiTableQlfDf, 'Total DQ (DF*px)', roiQlfStats.total_dq.toFixed(2));
+                addTableRow(roiTableQlfDf, 'Healthy area (px)', roiQlfStats.healthy_area_px);
+                addTableRow(roiTableQlfDf, 'Enamel affected (%)', roiQlfStats.enamel_affected_percent.toFixed(2) + '%');
+                addTableRow(roiTableQlfDf, 'Q10', (roiQlfStats.q10 * 100).toFixed(2) + '%');
+                addTableRow(roiTableQlfDf, 'Q45', (roiQlfStats.q45 * 100).toFixed(2) + '%');
+                addTableRow(roiTableQlfDf, 'Q60', (roiQlfStats.q60 * 100).toFixed(2) + '%');
+                addTableRow(roiTableQlfDf, 'Q75', (roiQlfStats.q75 * 100).toFixed(2) + '%');
+                addTableRow(roiTableQlfDf, 'Q90', (roiQlfStats.q90 * 100).toFixed(2) + '%');
+
+                addTableRow(allTableQlfDf, 'Total lesions', allQlfStats.total_lesions);
+                addTableRow(allTableQlfDf, 'Mean DF (%)', allQlfStats.mean_df_percent.toFixed(2));
+                addTableRow(allTableQlfDf, 'Total lesion area (px)', allQlfStats.total_lesion_area_px);
+                addTableRow(allTableQlfDf, 'Total DQ (DF*px)', allQlfStats.total_dq.toFixed(2));
+                addTableRow(allTableQlfDf, 'Healthy area (px)', allQlfStats.healthy_area_px);
+                addTableRow(allTableQlfDf, 'Enamel affected (%)', allQlfStats.enamel_affected_percent.toFixed(2) + '%');
+                addTableRow(allTableQlfDf, 'Q10', (allQlfStats.q10 * 100).toFixed(2) + '%');
+                addTableRow(allTableQlfDf, 'Q45', (allQlfStats.q45 * 100).toFixed(2) + '%');
+                addTableRow(allTableQlfDf, 'Q60', (allQlfStats.q60 * 100).toFixed(2) + '%');
+                addTableRow(allTableQlfDf, 'Q75', (allQlfStats.q75 * 100).toFixed(2) + '%');
+                addTableRow(allTableQlfDf, 'Q90', (allQlfStats.q90 * 100).toFixed(2) + '%');
+            }
+            
+            // Отображаем цветовые легенды
+            const colorLegend = document.getElementById('colorLegend');
+            colorLegend.innerHTML = '<h3>Цветовая легенда (Red/Green CH):</h3>';
+            
+            data.color_legend.forEach(item => {
+                const colorItem = document.createElement('div');
+                colorItem.className = 'color-item';
+                colorItem.innerHTML = `
+                    <div class="color-box" style="background-color: ${item.color};"></div>
+                    <div>${item.label}</div>
+                `;
+                colorLegend.appendChild(colorItem);
+            });
+
+            if (data.color_legend_qlf_df && Array.isArray(data.color_legend_qlf_df)) {
+                const title = document.createElement('h3');
+                title.textContent = 'Цветовая легенда (QLF DF):';
+                title.style.marginTop = '8px';
+                colorLegend.appendChild(title);
+                data.color_legend_qlf_df.forEach(item => {
+                    const colorItem = document.createElement('div');
+                    colorItem.className = 'color-item';
+                    colorItem.innerHTML = `
+                        <div class="color-box" style="background-color: ${item.color};"></div>
+                        <div>${item.label}</div>
+                    `;
+                    colorLegend.appendChild(colorItem);
+                });
+            }
+        }
+        
+        // Добавление строки в таблицу
+        function addTableRow(table, metric, value) {
+            const row = table.insertRow();
+            const cell1 = row.insertCell(0);
+            const cell2 = row.insertCell(1);
+            cell1.textContent = metric;
+            cell2.innerHTML = `<span class="metric-value">${value}</span>`;
+        }
+        
+        // Сохранение результатов
+        async function saveResults() {
+            if (!analysisResults) {
+                showAlert('Нет результатов для сохранения', 'error');
+                return;
+            }
+            
+            // Блокируем повторное нажатие
+            if (isSaving) {
+                showAlert('Идет сохранение, пожалуйста подождите...', 'info');
+                return;
+            }
+            
+            isSaving = true;
+            document.getElementById('loadingTitle').textContent = 'Выполняется скачивание архива...';
+            document.getElementById('loadingSubtitle').textContent = 'Подготовка...';
+            showLoading(true);
+            document.getElementById('saveBtn').disabled = true;
+            
+            try {
+                // Сохраняем результаты на сервере
+                const response = await fetch('/save_results', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        filename: imageInfo.filename,
+                        roi_stats: analysisResults.roi_analysis.stats,
+                        all_stats: analysisResults.all_teeth_analysis.stats,
+                        roi_image: analysisResults.analyzer_data.roi_image,
+                        all_teeth_image: analysisResults.analyzer_data.all_teeth_image,
+                        roi_stats_green: analysisResults.roi_analysis_green ? analysisResults.roi_analysis_green.stats : null,
+                        all_stats_green: analysisResults.all_teeth_analysis_green ? analysisResults.all_teeth_analysis_green.stats : null,
+                        roi_image_green: analysisResults.analyzer_data.roi_image_green || null,
+                        all_teeth_image_green: analysisResults.analyzer_data.all_teeth_image_green || null,
+                        roi_stats_qlf_df: analysisResults.roi_analysis_qlf_df ? analysisResults.roi_analysis_qlf_df.stats : null,
+                        all_stats_qlf_df: analysisResults.all_teeth_analysis_qlf_df ? analysisResults.all_teeth_analysis_qlf_df.stats : null,
+                        roi_image_qlf_df: analysisResults.analyzer_data.roi_image_qlf_df || null,
+                        all_teeth_image_qlf_df: analysisResults.analyzer_data.all_teeth_image_qlf_df || null
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    const downloadUrl = data.download_url;
+                    const zipFilename = data.zip_filename;
+                    document.getElementById('loadingSubtitle').textContent = zipFilename;
+                    downloadFile(downloadUrl, zipFilename);
+                    
+                    // Показываем уведомление
+                    showAlert('Результаты успешно сохранены и архив скачивается', 'success');
+                    
+                    // Показываем диалог с информацией (через 1 секунду)
+                    setTimeout(() => {
+                        showSaveSuccessDialog(zipFilename, downloadUrl);
+                    }, 1000);
+                    
+                } else {
+                    showAlert(data.error || 'Ошибка при сохранении результатов', 'error');
+                }
+            } catch (error) {
+                showAlert('Ошибка сети: ' + error.message, 'error');
+            } finally {
+                isSaving = false;
+                showLoading(false);
+                document.getElementById('saveBtn').disabled = false;
+            }
+        }
+        
+        // Скачивание файла: fetch + blob, чтобы архив точно скачивался с нужным именем
+        function downloadFile(url, filename) {
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error('Ошибка загрузки');
+                    return response.blob();
+                })
+                .then(blob => {
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = filename || 'qlf_results.zip';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(a.href);
+                })
+                .catch(err => showAlert('Не удалось скачать архив: ' + err.message, 'error'));
+        }
+        
+        // Диалог успешного сохранения
+        function showSaveSuccessDialog(zipFilename, downloadUrl) {
+            // Удаляем предыдущий модальный диалог, если есть
+            const existingModal = document.querySelector('.modal-overlay');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            
+            // Создаем модальное окно
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <h2 style="color: #28a745; margin-bottom: 20px;">
+                        <i class="fas fa-check-circle"></i> Результаты сохранены
+                    </h2>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <p>Результаты анализа успешно сохранены в файл:</p>
+                        <div style="
+                            background: #f8f9fa;
+                            padding: 15px;
+                            border-radius: 5px;
+                            margin: 10px 0;
+                            font-family: monospace;
+                            word-break: break-all;
+                        ">
+                            ${zipFilename}
+                        </div>
+                        <p style="color: #666; font-size: 0.9em;">
+                            Файл сохранен в папке <strong>results</strong> на сервере и автоматически скачан.
+                        </p>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; margin-top: 25px;">
+                        <button id="downloadAgainBtn" style="
+                            flex: 1;
+                            background: linear-gradient(135deg, #2E86AB 0%, #1B6CA8 100%);
+                            color: white;
+                            border: none;
+                            padding: 12px;
+                            border-radius: 5px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            font-weight: bold;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 8px;
+                        ">
+                            <i class="fas fa-download"></i> Скачать еще раз
+                        </button>
+                        
+                        <button id="closeModalBtn" style="
+                            background: #6c757d;
+                            color: white;
+                            border: none;
+                            padding: 12px 24px;
+                            border-radius: 5px;
+                            cursor: pointer;
+                        ">
+                            Закрыть
+                        </button>
+                    </div>
+                    
+                    <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #dee2e6;">
+                        <p style="color: #666; font-size: 0.9em;">
+                            <i class="fas fa-info-circle"></i> Архив содержит:
+                        </p>
+                        <ul style="color: #666; font-size: 0.9em; margin-left: 20px;">
+                            <li>Изображение с анализом ROI</li>
+                            <li>Изображение с анализом всех зубов</li>
+                            <li>Текстовый отчет с метриками</li>
+                            <li>JSON файл с полными данными</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Обработчики событий
+            document.getElementById('downloadAgainBtn').onclick = () => {
+                downloadFile(downloadUrl, zipFilename);
+            };
+            
+            document.getElementById('closeModalBtn').onclick = () => {
+                modal.remove();
+            };
+            
+            // Закрытие при клике вне окна
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            };
+        }
+        
+        // Сброс приложения
+        function resetApp() {
+            currentImage = null;
+            imageInfo = {
+                filename: null,
+                width: 0,
+                height: 0
+            };
+            
+            roi = {
+                x: 0,
+                y: 0,
+                width: 200,
+                height: 200
+            };
+            
+            analysisResults = null;
+            isSaving = false;
+            
+            document.getElementById('displayImage').src = '';
+            document.getElementById('imageSection').style.display = 'none';
+            document.getElementById('resultsSection').style.display = 'none';
+            document.getElementById('emptyResults').style.display = 'block';
+            document.getElementById('roiOverlay').style.display = 'none';
+            document.getElementById('roiInfo').style.display = 'none';
+            document.getElementById('fileInput').value = '';
+            document.getElementById('uploadText').innerHTML = '<span>Выберите файл</span> или перетащите сюда';
+            document.getElementById('uploadHint').textContent = 'JPG, PNG, BMP, TIFF';
+            document.getElementById('uploadBtnLabel').textContent = 'Выбрать файл';
+            document.getElementById('analyzeBtn').disabled = false;
+            document.getElementById('saveBtn').disabled = false;
+            
+            showAlert('Приложение сброшено', 'info');
+        }
+        
+        // Вспомогательные функции
+        function showLoading(show) {
+            document.getElementById('loading').classList.toggle('active', show);
+            if (!show) {
+                document.getElementById('loadingTitle').textContent = 'Выполняется анализ...';
+                document.getElementById('loadingSubtitle').textContent = 'Пожалуйста, подождите';
+            }
+        }
+        
+        function showAlert(message, type) {
+            const alert = document.getElementById('alert');
+            alert.textContent = message;
+            alert.className = `alert alert-${type}`;
+            alert.style.display = 'block';
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+        
+        function openImageLightbox(src) {
+            if (!src) return;
+            document.getElementById('lightboxImg').src = src;
+            document.getElementById('imageLightbox').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeImageLightbox() {
+            document.getElementById('imageLightbox').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        
+        // Обработчики событий для перетаскивания файлов
+        document.getElementById('uploadArea').addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.style.background = 'rgba(46, 134, 171, 0.1)';
+        });
+        
+        document.getElementById('uploadArea').addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.style.background = '';
+        });
+        
+        document.getElementById('uploadArea').addEventListener('drop', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.style.background = '';
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const fileInput = document.getElementById('fileInput');
+                fileInput.files = files;
+                handleFileSelect({target: fileInput});
+            }
+        });
+        
+        document.addEventListener('click', function(e) {
+            const block = e.target.closest('.result-image');
+            if (!block) return;
+            const img = block.querySelector('img');
+            if (img && img.src) {
+                e.preventDefault();
+                openImageLightbox(img.src);
+            }
+        });
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeImageLightbox();
+        });
+        
+        // Обработчики событий для ROI
+        document.getElementById('displayImage').addEventListener('mousedown', function(e) {
+            if (!imageInfo.filename) return;
+            
+            const imgRect = this.getBoundingClientRect();
+            const scaleX = imgRect.width / imageInfo.width;
+            const scaleY = imgRect.height / imageInfo.height;
+            
+            const mouseX = e.clientX - imgRect.left;
+            const mouseY = e.clientY - imgRect.top;
+            
+            const roiX = roi.x * scaleX;
+            const roiY = roi.y * scaleY;
+            const roiWidth = roi.width * scaleX;
+            const roiHeight = roi.height * scaleY;
+            
+            // Проверяем, кликнули ли внутри ROI
+            if (mouseX >= roiX && mouseX <= roiX + roiWidth &&
+                mouseY >= roiY && mouseY <= roiY + roiHeight) {
+                
+                roi.dragging = true;
+                roi.startX = mouseX - roiX;
+                roi.startY = mouseY - roiY;
+                e.preventDefault();
+            }
+        });
+        
+        document.addEventListener('mousemove', function(e) {
+            if (!roi.dragging || !imageInfo.filename) return;
+            
+            const img = document.getElementById('displayImage');
+            const imgRect = img.getBoundingClientRect();
+            const scaleX = imgRect.width / imageInfo.width;
+            const scaleY = imgRect.height / imageInfo.height;
+            
+            const mouseX = Math.max(0, Math.min(e.clientX - imgRect.left, imgRect.width));
+            const mouseY = Math.max(0, Math.min(e.clientY - imgRect.top, imgRect.height));
+            
+            roi.x = Math.max(0, Math.min((mouseX - roi.startX) / scaleX, imageInfo.width - roi.width));
+            roi.y = Math.max(0, Math.min((mouseY - roi.startY) / scaleY, imageInfo.height - roi.height));
+            
+            updateRoiDisplay();
+        });
+        
+        document.addEventListener('mouseup', function() {
+            roi.dragging = false;
+        });
+        
+        // Обработчик изменения размера изображения
+        window.addEventListener('resize', function() {
+            if (imageInfo.filename) {
+                updateRoiDisplay();
+            }
+        });
+        
+        // Инициализация
+        document.getElementById('displayImage').addEventListener('load', function() {
+            if (imageInfo.filename) {
+                updateRoiDisplay();
+            }
+        });
+    </script>
+</body>
+</html>
+</html>

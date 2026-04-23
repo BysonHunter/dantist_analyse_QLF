@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  qlf-analyzer:
+    build: .
+    container_name: qlf-analyzer
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./results:/app/results
+      - ./artifacts:/app/artifacts
+    environment:
+      - PYTHONUNBUFFERED=1
+      - FLASK_ENV=production
+      - TZ=Europe/Moscow
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - qlf-network
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+
+  # Опционально: сервис для периодической очистки файлов
+  cleanup:
+    build: .
+    container_name: qlf-cleanup
+    restart: unless-stopped
+    command: python cleanup_task.py
+    volumes:
+      - ./uploads:/app/uploads
+      - ./results:/app/results
+    environment:
+      - TZ=Europe/Moscow
+    networks:
+      - qlf-network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+networks:
+  qlf-network:
+    driver: bridge
+
+volumes:
+  uploads:
+    driver: local
+  results:
+    driver: local
+  artifacts:
+    driver: local
